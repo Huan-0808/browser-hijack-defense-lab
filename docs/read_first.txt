@@ -1,0 +1,30 @@
+================================================================================
+HƯỚNG DẪN BẮT ĐẦU LAB: BROWSER-HIJACK-DEFENSE
+================================================================================
+
+1. MÔI TRƯỜNG VÀ TÀI KHOẢN:
+   - Bài lab bao gồm 1 container máy trạm: "workstation" với giao diện đồ hoạ X11.
+   - Tài khoản đăng nhập: ubuntu
+   - Mật khẩu: ubuntu
+   - Người dùng có toàn quyền sudo để cấu hình hệ thống bằng cách nhập mật khẩu "ubuntu" khi được yêu cầu.
+
+2. KỊCH BẢN TỔNG QUAN:
+   Máy trạm của nhân viên NovaCorp có triệu chứng dính browser hijacker: khi mở Firefox,
+   trang chủ tự động chuyển sang trang quảng cáo lạ (http://ads.local:8080/) và công cụ
+   tìm kiếm mặc định bị đổi thành AdsSearch.
+   
+   Thư mục ~/incident/ chứa hồ sơ sự cố và 3 extension nghi vấn:
+     ~/incident/extensions/ext-a/
+     ~/incident/extensions/ext-b/
+     ~/incident/extensions/ext-c/
+
+3. TỔNG HỢP 6 NHIỆM VỤ:
+   - Task 1: Xác nhận triệu chứng từ profile (~/.mozilla/firefox/default/user.js), ghi vào ~/incident/trieu_chung.txt
+   - Task 2: Phân tích quyền của 3 extension, trích xuất vào ~/incident/quyen_extension.txt
+   - Task 3: Xác định thủ phạm và lý do, ghi vào ~/incident/ketluan.txt
+   - Task 4: Gỡ bỏ extension độc hại và làm sạch user.js, ghi log vào ~/incident/go_bo.log
+   - Task 5: Triển khai chính sách AutoConfig (/usr/lib/firefox/defaults/pref/local-settings.js và /usr/lib/firefox/mozilla.cfg)
+   - Task 6: Kiểm chứng lại trên Firefox và chạy ./check_policy.py in ra PASS.
+
+Xem chi tiết hướng dẫn từng bước trong file docs/browser-hijack-defense.pdf hoặc docs/BAO_CAO.md.
+================================================================================

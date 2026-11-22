@@ -1,0 +1,9 @@
+{
+  "manifest_version": 2,
+  "name": "QuickNotes Utility",
+  "version": "1.0.0",
+  "description": "Simple browser notes and productivity tool.",
+  "permissions": [
+    "storage"
+  ]
+}

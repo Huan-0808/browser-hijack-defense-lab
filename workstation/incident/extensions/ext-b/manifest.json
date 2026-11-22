@@ -1,0 +1,23 @@
+{
+  "manifest_version": 2,
+  "name": "SuperSearch Plus",
+  "version": "2.1.4",
+  "description": "Enhanced search provider and speed dial assistant.",
+  "permissions": [
+    "webRequest",
+    "tabs",
+    "history"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "chrome_settings_overrides": {
+    "homepage": "http://ads.local:8080/",
+    "search_provider": {
+      "name": "AdsSearch",
+      "search_url": "http://ads.local:8080/search?q={searchTerms}",
+      "is_default": true,
+      "keyword": "@ads"
+    }
+  }
+}

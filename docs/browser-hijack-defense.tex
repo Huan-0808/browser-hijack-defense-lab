@@ -1,0 +1,100 @@
+\input{header}
+\lhead{\bfseries LAB: Browser Hijack Defense}
+
+\begin{document}
+
+\begin{center}
+{\LARGE \bfseries Phòng Thủ và Khôi Phục Sự Cố Browser Hijacker}\\
+{\large Kịch bản phân tích tĩnh Extension và áp dụng Mozilla AutoConfig}\\
+\vspace{0.3cm}
+\end{center}
+
+\section{Tổng quan kịch bản}
+Một nhân viên văn phòng tại tập đoàn NovaCorp báo cáo rằng trình duyệt Firefox trên máy trạm cá nhân (\texttt{workstation}) gặp hiện tượng bất thường:
+\begin{itemize}
+    \item Mỗi khi mở Firefox, trang chủ tự động bị chuyển hướng sang trang web quảng cáo lạ (\url{http://ads.local:8080/}).
+    \item Công cụ tìm kiếm mặc định bị thay đổi thành \texttt{AdsSearch}.
+\end{itemize}
+Bộ phận phản ứng sự cố CNTT (CSIRT) đã cô lập 3 tiện ích mở rộng (extension) nghi vấn được cài đặt gần đây trên máy và lưu trữ tại thư mục:
+\begin{verbatim}
+~/incident/extensions/ext-a/
+~/incident/extensions/ext-b/
+~/incident/extensions/ext-c/
+\end{verbatim}
+Mỗi extension chỉ bao gồm file khai báo tĩnh \texttt{manifest.json} (không chứa mã JavaScript độc hại chạy ngầm).
+
+Sinh viên đóng vai trò là Chuyên viên Phân tích Bảo mật, có nhiệm vụ điều tra sự cố, xác định chính xác extension thủ phạm, loại bỏ nó, khôi phục cấu hình trình duyệt và áp dụng chính sách doanh nghiệp thông qua cơ chế \textbf{Mozilla AutoConfig} để ngăn ngừa tái diễn.
+
+\section{Môi trường thực hành}
+\begin{itemize}
+    \item \textbf{Máy trạm:} \texttt{workstation} (Base image: \texttt{labtainer.firefox}).
+    \item \textbf{Tài khoản:} \texttt{ubuntu} / Mật khẩu: \texttt{ubuntu} (Có quyền \texttt{sudo}).
+    \item \textbf{Hỗ trợ giao diện:} X11 kích hoạt để sinh viên tương tác trực tiếp với giao diện đồ hoạ Firefox.
+\end{itemize}
+
+\section{Các nhiệm vụ chi tiết}
+
+\subsection{Task 1: Xác nhận triệu chứng sự cố}
+Kiểm tra cấu hình người dùng của profile Firefox bị nhiễm tại đường dẫn:
+\begin{verbatim}
+cat ~/.mozilla/firefox/default/user.js
+\end{verbatim}
+Ghi nhận trang chủ và công cụ tìm kiếm đã bị ghi đè vào file:
+\begin{verbatim}
+~/incident/trieu_chung.txt
+\end{verbatim}
+Yêu cầu file phải chứa chuỗi \texttt{ads.local:8080}.
+
+\subsection{Task 2: Trích xuất quyền hạn của 3 extension}
+Sử dụng các lệnh phân tích (\texttt{cat}, \texttt{grep}, \texttt{jq} hoặc \texttt{python}) kiểm tra file \texttt{manifest.json} của 3 extension tại \texttt{\~/incident/extensions/}:
+\begin{itemize}
+    \item Trích xuất các trường: \texttt{permissions}, \texttt{host\_permissions}, và \texttt{chrome\_settings\_overrides}.
+    \item Lưu kết quả phân tích vào file \texttt{\~/incident/quyen\_extension.txt}.
+\end{itemize}
+
+\subsection{Task 3: Phân tích và kết luận thủ phạm}
+Dựa trên kết quả ở Task 2, xác định extension nào là thủ phạm thực hiện hành vi Browser Hijacking:
+\begin{itemize}
+    \item Ghi tên extension thủ phạm (\texttt{ext-b}) và lý do kỹ thuật vào file \texttt{\~/incident/ketluan.txt}.
+    \item Phải giải thích rõ: trường \texttt{chrome\_settings\_overrides} chứa cấu hình ghi đè \texttt{homepage} sang \texttt{http://ads.local:8080/} và \texttt{search\_provider} sang \texttt{AdsSearch}.
+\end{itemize}
+
+\subsection{Task 4: Gỡ bỏ và khôi phục cấu hình}
+Tiến hành xử lý máy trạm:
+\begin{enumerate}
+    \item Xoá bỏ thư mục extension thủ phạm (\texttt{rm -rf \~/incident/extensions/ext-b}).
+    \item Chỉnh sửa file \texttt{\~/.mozilla/firefox/default/user.js}, xoá bỏ 2 dòng \texttt{user\_pref} độc hại.
+    \item Ghi log các bước xử lý vào file \texttt{\~/incident/go\_bo.log} (phải chứa từ khoá \texttt{ext-b}).
+\end{enumerate}
+
+\subsection{Task 5: Triển khai chính sách bảo vệ bằng Mozilla AutoConfig}
+Để ngăn chặn hoàn toàn người dùng hoặc phần mềm độc hại tự ý đổi trang chủ hoặc cài extension lạ, triển khai chính sách doanh nghiệp qua AutoConfig:
+\begin{enumerate}
+    \item Tạo file trỏ cấu hình \texttt{/usr/lib/firefox/defaults/pref/local-settings.js}:
+\begin{verbatim}
+pref("general.config.obscure_value", 0);
+pref("general.config.filename", "mozilla.cfg");
+\end{verbatim}
+    \item Tạo file chính sách \texttt{/usr/lib/firefox/mozilla.cfg} (Lưu ý: Dòng 1 bắt buộc là comment \texttt{//}):
+\begin{verbatim}
+// Khoa cau hinh bao mat NovaCorp
+lockPref("browser.startup.homepage", "http://novacorp.local:8080/");
+lockPref("browser.startup.page", 1);
+lockPref("browser.search.defaultenginename", "NovaSearch");
+lockPref("xpinstall.enabled", false);
+\end{verbatim}
+    \textit{Ghi chú: Lệnh \texttt{lockPref("xpinstall.enabled", false)} sẽ chặn hoàn toàn việc cài đặt extension mới vào trình duyệt.}
+\end{enumerate}
+
+\subsection{Task 6: Kiểm chứng chính sách bảo mật}
+\begin{enumerate}
+    \item Khởi động lại Firefox: Trình duyệt phải tự động tải trang chủ nội bộ \url{http://novacorp.local:8080/}.
+    \item Mở \texttt{about:config}, tìm kiếm \texttt{browser.startup.homepage} và \texttt{xpinstall.enabled}: xác nhận trạng thái là \textbf{locked} (in đậm).
+    \item Chạy script kiểm tra tự động:
+\begin{verbatim}
+./check_policy.py
+\end{verbatim}
+Script sẽ kiểm tra toàn diện cấu hình hệ thống và in ra \textbf{PASS} khi toàn bộ chính sách hợp lệ.
+\end{enumerate}
+
+\end{document}
